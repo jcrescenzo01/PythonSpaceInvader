@@ -1,7 +1,7 @@
 import pygame  # game creation import
 import random  # for enemy placement
 import math  # for collision and other stuff
-from pygame import mixer    # for handling music / sounds
+from pygame import mixer  # for handling music / sounds
 
 # Creating game window
 
@@ -39,15 +39,15 @@ playerX_change = 0  # for keyboard input interaction
 
 # Enemy
 ## Multiple Enemies
-enemyImg = []       # making lists so we can store multiple enemies
+enemyImg = []  # making lists so we can store multiple enemies
 enemyX = []
 enemyY = []
 enemyX_change = []
 enemyY_change = []
 num_of_enemies = 6  # number of enemies we want
 
-for i in range(num_of_enemies):     # want to be able to loop through them
-    enemyImg.append(pygame.image.load('enemy1.png'))    # .append because its a list now, was '=' originally
+for i in range(num_of_enemies):  # want to be able to loop through them
+    enemyImg.append(pygame.image.load('enemy1.png'))  # .append because its a list now, was '=' originally
     # enemyX = 370
     # enemyY = 50         # note that 50 is higher on the screen than 480!
     # However, we want the enemy to show up randomly!:
@@ -77,27 +77,36 @@ bullet_state = "ready"  # ready: You cant see the bullet on the screen
 
 
 # Score
-# score = 0     # originally this, but removed due to needing a different, more functional scoring system, below:
 score_value = 0
-font = pygame.font.Font('freesansbold.ttf', 32)     # defining font, access pygame font function,
-                                                    # .ttf being the extension for the font, 32 is size
-                                                    # freesansbold is a font that comes with pygame, but you can download other fonts
-                                                        #extract the zip, put the ttf in your folder, than replace the .ttf above
+font = pygame.font.Font('freesansbold.ttf', 32)  # defining font, access pygame font function,
+# .ttf being the extension for the font, 32 is size
+# freesansbold is a font that comes with pygame, but you can download other fonts
+# extract the zip, put the ttf in your folder, than replace the .ttf above
 textX = 10  # x coordinate of where the text will appear, a bit away from the top left
 textY = 10  # y coordinate
 
-def show_score(x,y):    # function for displaying the score
-    score = font.render("Score: " + str(score_value), True, (255,255,255))   # rendering rather than bliting,
-                # render(textToPrint with score type casted to string, True, color of font)
-    screen.blit(score,(x,y))    # blit the score to the screen after rendering it
+# Game Over Text
+game_over_font = pygame.font.Font('freesansbold.ttf', 64)  # font for game over text
+
+
+def show_score(x, y):  # function for displaying the score
+    score = font.render("Score: " + str(score_value), True, (255, 255, 255))  # rendering rather than bliting,
+    # render(textToPrint with score type casted to string, True, color of font)
+    screen.blit(score, (x, y))  # blit the score to the screen after rendering it
+
+
+def game_over_text():
+    over_text = game_over_font.render("GAME OVER", True, (255, 255, 255))
+    screen.blit(over_text, (200, 250))    # game over text is at one place so no variables needed
+
 
 def player(x, y):  # added x,y during movement tutorial
     screen.blit(playerImg, (x, y))  # blit means "to draw", essentially, take image of player to screen
 
 
 def enemy(x, y, i):  # player remade into an enemy
-                    # added i value for multi-enemy for loop
-    screen.blit(enemyImg[i], (x, y))    # added [i] for which enemy image we want
+    # added i value for multi-enemy for loop
+    screen.blit(enemyImg[i], (x, y))  # added [i] for which enemy image we want
 
 
 def fire_bullet(x, y):  # function for shooting the bullet out of the player
@@ -109,7 +118,7 @@ def fire_bullet(x, y):  # function for shooting the bullet out of the player
 
 def isCollision(enemyX, enemyY, bulletX, bulletY):
     distance = math.sqrt((math.pow(enemyX - bulletX, 2)) + (math.pow(enemyY - bulletY, 2)))
-    if distance < 27:   # trial and testing untill finding propper distance between enemy and bullet to call it a collision
+    if distance < 27:  # trial and testing untill finding propper distance between enemy and bullet to call it a collision
         return True
     else:
         return False
@@ -153,8 +162,8 @@ while running:  # infinite loop so it stays open, but it will hang if theres no 
                 # print("Right arrow is pressed")
             if event.key == pygame.K_SPACE:  # checks if key being pressed is the Space Bar
                 if bullet_state == "ready":  # makes sure bullet doesnt teleport to us by requiring the ready state
-                    bullet_sound = mixer.Sound(mixer.Sound('laser.wav'))    # loads bullet sound when firing
-                    bullet_sound.play()     # plays the bullet sound
+                    bullet_sound = mixer.Sound(mixer.Sound('laser.wav'))  # loads bullet sound when firing
+                    bullet_sound.play()  # plays the bullet sound
                     bulletX = playerX  # to counter bullet following player x coord
                     fire_bullet(bulletX, bulletY)  # calling fire bullet funct when space is pressed
                     # originally playerX but that gets the bullet stuck on our current x location
@@ -169,7 +178,13 @@ while running:  # infinite loop so it stays open, but it will hang if theres no 
     # Left and Right Wall Border Control for Enemy
     # when it hits the border, we want it to go the opposite direction like in space invaders
     # we also want it to go down a bit each time, getting closer
-    for i in range(num_of_enemies):     # for multiple enemies, added [i] brackets below to make this function correctly
+    for i in range(num_of_enemies):  # for multiple enemies, added [i] brackets below to make this function correctly
+        # Game Over
+        if enemyY[i] > 440:  # when one of the enemies comes to 440 pixils
+            for j in range(num_of_enemies):  # then we want to move enemies off screen
+                enemyY[j] = 2000  # by setting y axis to 2000, far below
+            game_over_text()  # display game over text
+            break  # break out of the game loop
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 0:
             enemyX_change[i] = 0.3  # when it hits the left side start increasing the x value and
@@ -185,7 +200,7 @@ while running:  # infinite loop so it stays open, but it will hang if theres no 
         collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)  # stores value of true and false in collision
         # now what do we want when collision occurs?
         if collision:  # if collision is true
-            explosion_sound = mixer.Sound(mixer.Sound('explosion.wav')) # loads explosion sound on collision with enemy
+            explosion_sound = mixer.Sound(mixer.Sound('explosion.wav'))  # loads explosion sound on collision with enemy
             explosion_sound.play()  # plays that sound
             bulletY = 480  # reset bullet to its starting point
             bullet_state = "ready"  # change the state since the bullet isn't shown anymore
@@ -213,8 +228,6 @@ while running:  # infinite loop so it stays open, but it will hang if theres no 
         # to our current x coord
         # we will make it so we can only press SPACE when the bullet_state is in ready condition
 
-
-
     playerX += playerX_change  # applies keyboard input to the ship
     # Left and Right Wall Border Control for Player
     if playerX <= 0:
@@ -225,10 +238,9 @@ while running:  # infinite loop so it stays open, but it will hang if theres no 
     player(playerX, playerY)  # called after screen.fill since we want player on top of screen,
     # opposite would draw it underneath
 
-    show_score(textX, textY)    # showing the score on the screen added to while loop
+    show_score(textX, textY)  # showing the score on the screen added to while loop
 
     pygame.display.update()  # updates the display with the new code, this lets it change
-
 
 """ 
     Things I want to add to this
